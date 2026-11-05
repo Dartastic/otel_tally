@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_tally_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_tally';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class TallyResult {
+  /// Creates a result.
   const TallyResult({
     this.workspaceId,
     this.formId,
@@ -65,8 +66,13 @@ class TallyResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class TallyCallResult<T> {
+  /// Creates a call result.
   const TallyCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final TallyResult? result;
 }
@@ -92,92 +98,92 @@ Future<T> tracedTally<T>({
   final span = _tracer().startSpan(
     'tally $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.workspaceId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'tally.workspace.id',
           r.result!.workspaceId!,
         ));
       }
       if (r.result!.formId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'tally.form.id',
           r.result!.formId!,
         ));
       }
       if (r.result!.formStatus != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'tally.form.status',
           r.result!.formStatus!,
         ));
       }
       if (r.result!.questionCount != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'tally.form.question_count',
           r.result!.questionCount!,
         ));
       }
       if (r.result!.hasPaymentBlock != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'tally.form.has_payment',
           r.result!.hasPaymentBlock!,
         ));
       }
       if (r.result!.hasFileUpload != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'tally.form.has_file_upload',
           r.result!.hasFileUpload!,
         ));
       }
       if (r.result!.partialSubmissionsEnabled != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'tally.form.partial_submissions_enabled',
           r.result!.partialSubmissionsEnabled!,
         ));
       }
       if (r.result!.submissionId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'tally.submission.id',
           r.result!.submissionId!,
         ));
       }
       if (r.result!.completedAtSec != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'tally.submission.completed_at_sec',
           r.result!.completedAtSec!,
         ));
       }
       if (r.result!.respondentEmail != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'tally.respondent.email',
           r.result!.respondentEmail!,
         ));
       }
       if (r.result!.responseCountForForm != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'tally.form.response_count',
           r.result!.responseCountForForm!,
         ));
       }
       if (r.result!.webhookId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'tally.webhook.id',
           r.result!.webhookId!,
         ));
       }
       if (r.result!.webhookEnabled != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'tally.webhook.enabled',
           r.result!.webhookEnabled!,
         ));
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -188,13 +194,13 @@ Future<T> tracedTally<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
